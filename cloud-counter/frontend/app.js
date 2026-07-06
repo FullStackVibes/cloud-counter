@@ -1,9 +1,9 @@
 /**
- * CloudCounter - Frontend Application Logic (Milestone 1)
- * Handles network fetch requests to get and update the global counter.
+ * CloudCounter - Frontend Application Logic (Milestone 2)
+ * Handles network fetch requests to get and update the global counter with action parameters.
  */
 
-// Target backend server URL (port 5000 as specified by Milestone 1 requirements)
+// Target backend server URL (port 5000 as specified by Milestone requirements)
 // Includes fallback to current origin when hosted through unified container ingress (port 3000)
 const API_BASE_URL = (window.location.hostname.includes('run.app') || window.location.port === '3000')
   ? window.location.origin
@@ -11,7 +11,9 @@ const API_BASE_URL = (window.location.hostname.includes('run.app') || window.loc
 
 // DOM Elements
 const counterDisplay = document.getElementById('counter-display');
-const countButton = document.getElementById('count-btn');
+const incrementButton = document.getElementById('increment-btn');
+const decrementButton = document.getElementById('decrement-btn');
+const resetButton = document.getElementById('reset-btn');
 const statusMessage = document.getElementById('status-message');
 
 /**
@@ -44,12 +46,12 @@ function updateStatus(text, isError = false) {
 }
 
 /**
- * On DOM content load, fire an asynchronous fetch() GET request to /api/count
+ * On DOM content load, fire an asynchronous fetch() GET request to /api/counter
  */
 async function fetchInitialCount() {
   updateStatus('Fetching count from server...');
   try {
-    const response = await fetch(`${API_BASE_URL}/api/count`, {
+    const response = await fetch(`${API_BASE_URL}/api/counter`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json'
@@ -75,21 +77,25 @@ async function fetchInitialCount() {
 }
 
 /**
- * When clicked, fire a fetch() POST request to /api/increment
+ * When clicked, fire a fetch() POST request to /api/counter with the specified action
+ * @param {string} action ('increment', 'decrement', or 'reset')
+ * @param {HTMLButtonElement} btnElem
  */
-async function handleIncrementCount() {
-  if (countButton) {
-    countButton.disabled = true;
-  }
-  updateStatus('Incrementing count...');
+async function handleCounterAction(action, btnElem) {
+  const allButtons = [incrementButton, decrementButton, resetButton];
+  allButtons.forEach(btn => { if (btn) btn.disabled = true; });
+
+  const actionText = action === 'increment' ? 'Incrementing...' : (action === 'decrement' ? 'Decrementing...' : 'Resetting...');
+  updateStatus(actionText);
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/increment`, {
+    const response = await fetch(`${API_BASE_URL}/api/counter`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
-      }
+      },
+      body: JSON.stringify({ action: action })
     });
 
     if (!response.ok) {
@@ -99,17 +105,16 @@ async function handleIncrementCount() {
     const data = await response.json();
     if (data && typeof data.count === 'number') {
       updateCounterUI(data.count);
-      updateStatus('Count saved to database.');
+      const successText = action === 'increment' ? 'Count incremented (+1).' : (action === 'decrement' ? 'Count decremented (-1).' : 'Count reset to 0.');
+      updateStatus(successText);
     } else {
       throw new Error('Invalid response structure.');
     }
   } catch (error) {
-    console.error('[Frontend Error] Failed to increment count:', error);
-    updateStatus('Failed to update counter on server.', true);
+    console.error(`[Frontend Error] Failed to execute ${action}:`, error);
+    updateStatus(`Failed to execute ${action} on server.`, true);
   } finally {
-    if (countButton) {
-      countButton.disabled = false;
-    }
+    allButtons.forEach(btn => { if (btn) btn.disabled = false; });
   }
 }
 
@@ -118,8 +123,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Fire asynchronous GET request on initial load
   fetchInitialCount();
 
-  // Attach click event listener to the "Count" button
-  if (countButton) {
-    countButton.addEventListener('click', handleIncrementCount);
+  // Attach click event listeners to the action buttons
+  if (incrementButton) {
+    incrementButton.addEventListener('click', () => handleCounterAction('increment', incrementButton));
+  }
+  if (decrementButton) {
+    decrementButton.addEventListener('click', () => handleCounterAction('decrement', decrementButton));
+  }
+  if (resetButton) {
+    resetButton.addEventListener('click', () => handleCounterAction('reset', resetButton));
   }
 });

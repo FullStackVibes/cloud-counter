@@ -5,9 +5,9 @@ import { fileURLToPath } from 'url';
 import { createRequire } from 'module';
 import { createServer as createViteServer } from 'vite';
 
-const require = createRequire(import.meta.url);
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const customRequire = typeof require !== 'undefined' ? require : createRequire(import.meta.url);
+const customFilename = typeof __filename !== 'undefined' ? __filename : fileURLToPath(import.meta.url);
+const customDirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(customFilename);
 
 async function startServer() {
   const app = express();
@@ -17,7 +17,8 @@ async function startServer() {
   app.use(express.json());
 
   // Mount the Milestone 1 backend API server directly onto container ingress (port 3000)
-  const backendApp = require('./cloud-counter/backend/server.js');
+  const backendAppPath = path.resolve(process.cwd(), 'cloud-counter/backend/server.js');
+  const backendApp = customRequire(backendAppPath);
   app.use(backendApp);
 
   // Also boot the standalone Milestone 1 backend server on port 5000 for strict specification compliance
