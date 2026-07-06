@@ -1,0 +1,6 @@
+{
+  "name": "CloudCounter",
+  "description": "A minimalist full-stack web application with Node.js, Express, SQLite, and vanilla HTML/JS designed for learning fundamental client-server mechanics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
