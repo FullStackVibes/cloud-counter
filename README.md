@@ -1,4 +1,4 @@
-# CloudCounter v2 🚀
+# CloudCounter🚀
 
 A decoupled, full-stack counter application featuring a modern UI frontend and a robust Node.js/Express API backend, persisting state across sessions using a local file-based SQLite database.
 
