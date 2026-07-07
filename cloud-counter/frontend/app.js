@@ -3,6 +3,21 @@
  * Handles network fetch requests to get and update the global counter with action parameters.
  */
 
+// Safely ensure window.fetch is writable and configurable (e.g. for sandboxed test runners/mockers)
+try {
+  if (typeof window !== 'undefined' && window.fetch) {
+    const originalFetch = window.fetch;
+    Object.defineProperty(window, 'fetch', {
+      value: originalFetch,
+      writable: true,
+      configurable: true,
+      enumerable: true
+    });
+  }
+} catch (e) {
+  console.warn('[CloudCounter] Polyfill for fetch configurability failed:', e);
+}
+
 // Target backend server URL (port 5000 as specified by Milestone requirements)
 // Includes fallback to current origin when hosted through unified container ingress (port 3000)
 const API_BASE_URL = (window.location.hostname.includes('run.app') || window.location.port === '3000')
